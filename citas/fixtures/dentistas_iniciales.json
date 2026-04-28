@@ -1,0 +1,22 @@
+[
+  {
+    "model": "citas.dentista",
+    "pk": 1,
+    "fields": {"nombre": "Dr. Juan Pérez", "activo": true}
+  },
+  {
+    "model": "citas.dentista",
+    "pk": 2,
+    "fields": {"nombre": "Dra. María Gómez", "activo": true}
+  },
+  {
+    "model": "citas.dentista",
+    "pk": 3,
+    "fields": {"nombre": "Dr. Carlos Ramírez", "activo": true}
+  },
+  {
+    "model": "citas.dentista",
+    "pk": 4,
+    "fields": {"nombre": "Dra. Lucía Torres", "activo": true}
+  }
+]

@@ -59,3 +59,93 @@ class RegistrarCitaForm(forms.Form):
 
     def clean_motivo(self):
         return validators.validar_motivo(self.cleaned_data.get("motivo"))
+
+    # ---- cross-field clean ----
+    def clean(self):
+        cleaned = super().clean()
+        fecha = cleaned.get("fecha")
+        hora = cleaned.get("hora")
+        dentista = cleaned.get("dentista")
+        dni = cleaned.get("dni_paciente")
+
+        if fecha and hora and dentista:
+            ocupado = Cita.objects.filter(
+                fecha=fecha,
+                hora=hora,
+                dentista=dentista,
+                estado="Activa",
+            ).exists()
+            if ocupado:
+                raise ValidationError(
+                    "El turno seleccionado no esta disponible para ese dentista."
+                )
+
+        if fecha and dni:
+            duplicado = Cita.objects.filter(
+                fecha=fecha,
+                dni_paciente=dni,
+                estado="Activa",
+            ).exists()
+            if duplicado:
+                raise ValidationError(
+                    "El paciente ya tiene una cita registrada para esa fecha."
+                )
+
+        return cleaned
+
+
+class ConsultarCitaForm(forms.Form):
+    """RF-02: Consultar Cita por DNI o Fecha."""
+
+    CRITERIOS = [
+        ("1", "Por DNI"),
+        ("2", "Por Fecha"),
+    ]
+
+    criterio = forms.ChoiceField(label="Criterio de busqueda", choices=CRITERIOS)
+    dni = forms.CharField(label="DNI (8 digitos)", max_length=8, required=False)
+    fecha = forms.CharField(label="Fecha (DD/MM/AAAA)", required=False)
+
+    def clean(self):
+        cleaned = super().clean()
+        criterio = cleaned.get("criterio")
+
+        if criterio not in {"1", "2"}:
+            raise ValidationError("Opcion invalida. Seleccione 1 (DNI) o 2 (Fecha).")
+
+        if criterio == "1":
+            dni = cleaned.get("dni")
+            if not dni:
+                raise ValidationError("Debe ingresar el DNI para buscar.")
+            cleaned["dni"] = validators.validar_dni(dni)
+            cleaned["fecha"] = None
+        else:  # criterio == "2"
+            fecha_str = cleaned.get("fecha")
+            if not fecha_str:
+                raise ValidationError("Debe ingresar la fecha para buscar.")
+            cleaned["fecha"] = validators.parsear_fecha_ddmmaaaa(fecha_str)
+            cleaned["dni"] = None
+
+        return cleaned
+
+class CancelarCitaForm(forms.Form):
+    """RF-03: Cancelar Cita."""
+
+    id_cita = forms.CharField(
+        label="ID de la cita (CIT-YYYYMMDD-NNN)", max_length=20
+    )
+    confirmacion = forms.ChoiceField(
+        label="Confirmacion",
+        choices=[("S", "S - Si, cancelar"), ("N", "N - No, abortar")],
+    )
+
+    def clean_id_cita(self):
+        return validators.validar_id_cita(self.cleaned_data.get("id_cita"))
+
+    def clean_confirmacion(self):
+        c = (self.cleaned_data.get("confirmacion") or "").strip().upper()
+        if c not in {"S", "N"}:
+            raise ValidationError(
+                "Opcion invalida. Ingrese S para confirmar o N para cancelar."
+            )
+        return c
