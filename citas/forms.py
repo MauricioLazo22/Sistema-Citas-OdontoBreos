@@ -39,3 +39,23 @@ class RegistrarCitaForm(forms.Form):
         queryset=Dentista.objects.filter(activo=True).order_by("nombre"),
         empty_label="-- Seleccione --",
     )
+
+    # ---- field-level cleans ----
+    def clean_nombre_paciente(self):
+        return validators.validar_nombre(self.cleaned_data.get("nombre_paciente"))
+
+    def clean_dni_paciente(self):
+        return validators.validar_dni(self.cleaned_data.get("dni_paciente"))
+
+    def clean_telefono(self):
+        return validators.validar_telefono(self.cleaned_data.get("telefono"))
+
+    def clean_fecha(self):
+        f = validators.parsear_fecha_ddmmaaaa(self.cleaned_data.get("fecha"))
+        return validators.validar_fecha_cita(f)
+
+    def clean_hora(self):
+        return validators.validar_hora(self.cleaned_data.get("hora"))
+
+    def clean_motivo(self):
+        return validators.validar_motivo(self.cleaned_data.get("motivo"))
