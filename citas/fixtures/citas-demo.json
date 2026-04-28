@@ -1,0 +1,32 @@
+[
+  {
+    "model": "citas.cita",
+    "pk": 1,
+    "fields": {
+      "id_cita": "CIT-20260505-001",
+      "nombre_paciente": "Ana Lopez Martinez",
+      "dni_paciente": "12345678",
+      "telefono": "987654321",
+      "fecha": "2026-05-05",
+      "hora": "09:00",
+      "motivo": "Limpieza",
+      "dentista": 1,
+      "estado": "Activa"
+    }
+  },
+  {
+    "model": "citas.cita",
+    "pk": 2,
+    "fields": {
+      "id_cita": "CIT-20260506-001",
+      "nombre_paciente": "Pedro Quispe Mamani",
+      "dni_paciente": "87654321",
+      "telefono": "987111222",
+      "fecha": "2026-05-06",
+      "hora": "10:00",
+      "motivo": "Revision general",
+      "dentista": 2,
+      "estado": "Activa"
+    }
+  }
+]
