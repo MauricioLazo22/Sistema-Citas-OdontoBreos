@@ -93,3 +93,37 @@ class RegistrarCitaForm(forms.Form):
 
         return cleaned
 
+
+class ConsultarCitaForm(forms.Form):
+    """RF-02: Consultar Cita por DNI o Fecha."""
+
+    CRITERIOS = [
+        ("1", "Por DNI"),
+        ("2", "Por Fecha"),
+    ]
+
+    criterio = forms.ChoiceField(label="Criterio de busqueda", choices=CRITERIOS)
+    dni = forms.CharField(label="DNI (8 digitos)", max_length=8, required=False)
+    fecha = forms.CharField(label="Fecha (DD/MM/AAAA)", required=False)
+
+    def clean(self):
+        cleaned = super().clean()
+        criterio = cleaned.get("criterio")
+
+        if criterio not in {"1", "2"}:
+            raise ValidationError("Opcion invalida. Seleccione 1 (DNI) o 2 (Fecha).")
+
+        if criterio == "1":
+            dni = cleaned.get("dni")
+            if not dni:
+                raise ValidationError("Debe ingresar el DNI para buscar.")
+            cleaned["dni"] = validators.validar_dni(dni)
+            cleaned["fecha"] = None
+        else:  # criterio == "2"
+            fecha_str = cleaned.get("fecha")
+            if not fecha_str:
+                raise ValidationError("Debe ingresar la fecha para buscar.")
+            cleaned["fecha"] = validators.parsear_fecha_ddmmaaaa(fecha_str)
+            cleaned["dni"] = None
+
+        return cleaned
