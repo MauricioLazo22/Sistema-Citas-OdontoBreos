@@ -33,3 +33,27 @@
             <dt>Dentista</dt><dd>{{ cita.dentista.nombre }}</dd>
             <dt>Estado</dt><dd class="estado-{{ cita.estado|lower }}">{{ cita.estado }}</dd>
         </dl>
+                <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="id_cita" value="{{ cita.id_cita }}">
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {% for err in form.non_field_errors %}{{ err }}<br>{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="field">
+                <label for="{{ form.confirmacion.id_for_label }}">¿Confirma la cancelación? (S/N)</label>
+                {{ form.confirmacion }}
+                {{ form.confirmacion.errors }}
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-danger">Aplicar cancelación</button>
+                <a href="{% url 'citas:cancelar' %}" class="btn btn-secondary">Volver</a>
+            </div>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}
