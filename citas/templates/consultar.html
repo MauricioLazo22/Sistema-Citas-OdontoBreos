@@ -1,0 +1,81 @@
+{% extends "citas/base.html" %}
+
+{% block title %}Consultar Cita — RF-02{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>RF-02 · Consultar Cita</h2>
+    <p class="subtitle">Buscar citas por DNI del paciente o por fecha.</p>
+
+    <form method="get" novalidate>
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {% for err in form.non_field_errors %}{{ err }}<br>{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="field">
+                <label for="{{ form.criterio.id_for_label }}">Criterio</label>
+                {{ form.criterio }}
+                {{ form.criterio.errors }}
+            </div>
+            <div class="field">
+                <label for="{{ form.dni.id_for_label }}">DNI (8 dígitos)</label>
+                {{ form.dni }}
+                {{ form.dni.errors }}
+            </div>
+            <div class="field">
+                <label for="{{ form.fecha.id_for_label }}">Fecha (DD/MM/AAAA)</label>
+                {{ form.fecha }}
+                {{ form.fecha.errors }}
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <a href="{% url 'citas:menu' %}" class="btn btn-secondary">Volver</a>
+        </div>
+    </form>
+</div>
+{% if realizada %}
+    <div class="card">
+        <h3>Resultados</h3>
+        {% if resultados %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Cita</th>
+                        <th>Paciente</th>
+                        <th>DNI</th>
+                        <th>Teléfono</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Motivo</th>
+                        <th>Dentista</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in resultados %}
+                    <tr>
+                        <td><code>{{ c.id_cita }}</code></td>
+                        <td>{{ c.nombre_paciente }}</td>
+                        <td>{{ c.dni_paciente }}</td>
+                        <td>{{ c.telefono }}</td>
+                        <td>{{ c.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ c.hora }}</td>
+                        <td>{{ c.motivo }}</td>
+                        <td>{{ c.dentista.nombre }}</td>
+                        <td class="estado-{{ c.estado|lower }}">{{ c.estado }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="small" style="margin-top: 10px;">Total: {{ resultados|length }}</p>
+        {% else %}
+            <div class="alert alert-info">No se encontraron citas con el criterio ingresado.</div>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}
