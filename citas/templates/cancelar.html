@@ -1,0 +1,35 @@
+{% extends "citas/base.html" %}
+
+{% block title %}Cancelar Cita — RF-03{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>RF-03 · Cancelar Cita</h2>
+    <p class="subtitle">Ingrese el ID de la cita en formato <code>CIT-YYYYMMDD-NNN</code>.</p>
+
+    {% if modo == "buscar" %}
+        <form method="get" novalidate>
+            <div class="field">
+                <label for="id_cita">ID de la cita</label>
+                <input type="text" id="id_cita" name="id_cita" placeholder="CIT-YYYYMMDD-NNN" required>
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Buscar cita</button>
+                <a href="{% url 'citas:menu' %}" class="btn btn-secondary">Volver</a>
+            </div>
+        </form>
+    {% endif %}
+
+    {% if modo == "confirmar" and cita %}
+        <h3>Datos de la cita encontrada</h3>
+        <dl class="detalle">
+            <dt>ID</dt><dd><code>{{ cita.id_cita }}</code></dd>
+            <dt>Paciente</dt><dd>{{ cita.nombre_paciente }}</dd>
+            <dt>DNI</dt><dd>{{ cita.dni_paciente }}</dd>
+            <dt>Teléfono</dt><dd>{{ cita.telefono }}</dd>
+            <dt>Fecha</dt><dd>{{ cita.fecha|date:"d/m/Y" }}</dd>
+            <dt>Hora</dt><dd>{{ cita.hora }}</dd>
+            <dt>Motivo</dt><dd>{{ cita.motivo }}</dd>
+            <dt>Dentista</dt><dd>{{ cita.dentista.nombre }}</dd>
+            <dt>Estado</dt><dd class="estado-{{ cita.estado|lower }}">{{ cita.estado }}</dd>
+        </dl>
