@@ -54,3 +54,33 @@ TEMPLATES = [
     },
 ]
 
+
+WSGI_APPLICATION = "odontovros.wsgi.application"
+
+# Base de datos: SQLite, archivo .db dentro del proyecto
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "citas.db",
+    }
+}
+
+# Validacion de password
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
+# Internacionalizacion
+LANGUAGE_CODE = "es-pe"
+TIME_ZONE = "America/Lima"
+USE_I18N = True
+USE_TZ = True
+
+# Static files
+STATIC_URL = "static/"
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
