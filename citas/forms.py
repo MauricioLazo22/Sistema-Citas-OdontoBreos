@@ -127,3 +127,25 @@ class ConsultarCitaForm(forms.Form):
             cleaned["dni"] = None
 
         return cleaned
+
+class CancelarCitaForm(forms.Form):
+    """RF-03: Cancelar Cita."""
+
+    id_cita = forms.CharField(
+        label="ID de la cita (CIT-YYYYMMDD-NNN)", max_length=20
+    )
+    confirmacion = forms.ChoiceField(
+        label="Confirmacion",
+        choices=[("S", "S - Si, cancelar"), ("N", "N - No, abortar")],
+    )
+
+    def clean_id_cita(self):
+        return validators.validar_id_cita(self.cleaned_data.get("id_cita"))
+
+    def clean_confirmacion(self):
+        c = (self.cleaned_data.get("confirmacion") or "").strip().upper()
+        if c not in {"S", "N"}:
+            raise ValidationError(
+                "Opcion invalida. Ingrese S para confirmar o N para cancelar."
+            )
+        return c
