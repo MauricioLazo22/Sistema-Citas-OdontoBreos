@@ -31,3 +31,17 @@ ESTADOS = [
     ("Cancelada", "Cancelada"),
 ]
 
+class Dentista(models.Model):
+    """Dentista al que se le pueden asignar citas."""
+
+    nombre = models.CharField(max_length=120, unique=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Dentista"
+        verbose_name_plural = "Dentistas"
+        ordering = ["nombre"]
+
+    def __str__(self):
+        return self.nombre
+
