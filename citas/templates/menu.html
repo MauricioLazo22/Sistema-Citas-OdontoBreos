@@ -1,0 +1,38 @@
+{% extends "citas/base.html" %}
+
+{% block title %}Menú principal — Citas Odontológicas{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Menú principal</h2>
+    <p class="subtitle">Sistema de gestión de citas odontológicas — Universidad Católica de Santa María</p>
+
+    <div class="menu-grid">
+        <a class="menu-item" href="{% url 'citas:registrar' %}">
+            <span class="num">1</span>
+            <strong>Registrar Cita</strong>
+            <span>Agendar una nueva cita para un paciente</span>
+        </a>
+        <a class="menu-item" href="{% url 'citas:consultar' %}">
+            <span class="num">2</span>
+            <strong>Consultar Cita</strong>
+            <span>Buscar citas por DNI o por fecha</span>
+        </a>
+        <a class="menu-item" href="{% url 'citas:cancelar' %}">
+            <span class="num">3</span>
+            <strong>Cancelar Cita</strong>
+            <span>Cancelar una cita activa por su ID</span>
+        </a>
+    </div>
+
+    <h3 style="margin-top: 28px;">Información del módulo</h3>
+    <p class="small">
+        Letra del grupo: <strong>D</strong> &middot;
+        Lenguaje: <strong>Python (Django)</strong> &middot;
+        Base de datos: <strong>SQLite (citas.db)</strong>
+    </p>
+    <p class="small" style="margin-top: 6px;">
+        Integrantes: Lazo Franco Mauricio Paolo &middot; Lonasco Sanamarina Leonardo Olier &middot; Reaño Soto Iván Edgardo
+    </p>
+</div>
+{% endblock %}

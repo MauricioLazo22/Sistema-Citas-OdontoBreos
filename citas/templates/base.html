@@ -1,0 +1,183 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Citas Odontológicas{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f3f6fb;
+            color: #1f2937;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: linear-gradient(90deg, #0e7490, #155e75);
+            color: white;
+            padding: 16px 32px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 { font-size: 20px; font-weight: 600; }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .navbar a:hover { opacity: 1; }
+        .container {
+            max-width: 880px;
+            margin: 32px auto;
+            padding: 0 16px;
+        }
+                .card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px 32px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            margin-bottom: 16px;
+        }
+        h2 { color: #0e7490; margin-bottom: 8px; font-size: 22px; }
+        h3 { color: #334155; margin: 16px 0 8px; font-size: 16px; }
+        .subtitle { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+
+        .messages { margin-bottom: 16px; }
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+        .alert-error   { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+        .alert-info    { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
+        .alert-warning { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+
+        form .field { margin-bottom: 14px; }
+        form label {
+            display: block;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        form input[type="text"], form input[type="number"], form select, form textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        form input:focus, form select:focus {
+            outline: none;
+            border-color: #0e7490;
+            box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+        }
+        .errorlist {
+            list-style: none;
+            color: #b91c1c;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn:active { transform: translateY(1px); }
+        .btn-primary { background: #0e7490; color: white; }
+        .btn-secondary { background: #e2e8f0; color: #334155; }
+        .btn-danger  { background: #dc2626; color: white; }
+        .btn-success { background: #16a34a; color: white; }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 22px 16px;
+            text-decoration: none;
+            color: #0f172a;
+            transition: all 0.15s;
+        }
+        .menu-item:hover {
+            background: #ecfeff;
+            border-color: #0e7490;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(14, 116, 144, 0.15);
+        }
+        .menu-item .num {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            line-height: 36px;
+            border-radius: 50%;
+            background: #0e7490;
+            color: white;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .menu-item strong { display: block; margin-bottom: 4px; font-size: 15px; }
+        .menu-item span { color: #64748b; font-size: 12px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+        th, td {
+            text-align: left;
+            padding: 9px 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th { background: #f8fafc; color: #475569; font-weight: 600; }
+        tr:hover td { background: #f8fafc; }
+        .estado-activa     { color: #047857; font-weight: 600; }
+        .estado-cancelada  { color: #b91c1c; font-weight: 600; }
+
+        .row { display: flex; gap: 12px; }
+        .row > * { flex: 1; }
+        .actions { margin-top: 18px; display: flex; gap: 8px; }
+        .small { font-size: 12px; color: #64748b; }
+        dl.detalle { display: grid; grid-template-columns: 200px 1fr; gap: 8px 16px; margin: 12px 0; font-size: 14px; }
+        dl.detalle dt { color: #64748b; font-weight: 500; }
+        dl.detalle dd { color: #1f2937; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🦷 Sistema de Citas Odontológicas — Grupo D</h1>
+        <a href="{% url 'citas:menu' %}">Menú principal</a>
+    </div>
+    <div class="container">
+        {% if messages %}
+            <div class="messages">
+                {% for m in messages %}
+                    <div class="alert alert-{{ m.tags|default:'info' }}">{{ m }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
