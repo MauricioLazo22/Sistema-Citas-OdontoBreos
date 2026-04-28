@@ -59,3 +59,37 @@ class RegistrarCitaForm(forms.Form):
 
     def clean_motivo(self):
         return validators.validar_motivo(self.cleaned_data.get("motivo"))
+
+    # ---- cross-field clean ----
+    def clean(self):
+        cleaned = super().clean()
+        fecha = cleaned.get("fecha")
+        hora = cleaned.get("hora")
+        dentista = cleaned.get("dentista")
+        dni = cleaned.get("dni_paciente")
+
+        if fecha and hora and dentista:
+            ocupado = Cita.objects.filter(
+                fecha=fecha,
+                hora=hora,
+                dentista=dentista,
+                estado="Activa",
+            ).exists()
+            if ocupado:
+                raise ValidationError(
+                    "El turno seleccionado no esta disponible para ese dentista."
+                )
+
+        if fecha and dni:
+            duplicado = Cita.objects.filter(
+                fecha=fecha,
+                dni_paciente=dni,
+                estado="Activa",
+            ).exists()
+            if duplicado:
+                raise ValidationError(
+                    "El paciente ya tiene una cita registrada para esa fecha."
+                )
+
+        return cleaned
+
