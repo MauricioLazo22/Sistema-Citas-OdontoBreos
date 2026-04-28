@@ -1,0 +1,36 @@
+{% extends "citas/base.html" %}
+
+{% block title %}Registrar Cita — RF-01{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>RF-01 · Registrar Cita Odontológica</h2>
+    <p class="subtitle">Complete todos los campos. El sistema valida formatos y disponibilidad antes de registrar.</p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {% for err in form.non_field_errors %}{{ err }}<br>{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="field">
+            <label for="{{ form.nombre_paciente.id_for_label }}">Nombre completo del paciente</label>
+            {{ form.nombre_paciente }}
+            {{ form.nombre_paciente.errors }}
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label for="{{ form.dni_paciente.id_for_label }}">DNI del paciente</label>
+                {{ form.dni_paciente }}
+                {{ form.dni_paciente.errors }}
+            </div>
+            <div class="field">
+                <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
+                {{ form.telefono }}
+                {{ form.telefono.errors }}
+            </div>
+        </div>
