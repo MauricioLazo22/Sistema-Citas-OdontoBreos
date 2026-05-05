@@ -291,3 +291,89 @@ class RF03TestCase(BaseCT):
         self.client.post(reverse("citas:cancelar"), {"id_cita": self.cita.id_cita, "confirmacion": "S"})
         d = datos_validos(self.d1, fecha=self.f.strftime("%d/%m/%Y"), hora=self.cita.hora, dni_paciente="99887766")
         self.assertTrue(RegistrarCitaForm(d).is_valid())
+
+
+
+# RF-04 -----------------------------------------------------------------
+
+class RF04TestCase(BaseCT):
+    """Reasignar Cita."""
+
+    def setUp(self):
+        super().setUp()
+        self.fo = fecha_futura(7)
+        self.fn = fecha_futura(14)
+        self.cita = Cita.objects.create(
+            id_cita=Cita.generar_id(self.fo), nombre_paciente="Test Reasignar",
+            dni_paciente="66778899", telefono="987666555", fecha=self.fo,
+            hora="09:00", motivo="Ortodoncia", dentista=self.d1,
+        )
+
+    def _payload(self, **kw):
+        d = {
+            "id_cita": self.cita.id_cita,
+            "nueva_fecha": self.fn.strftime("%d/%m/%Y"),
+            "nueva_hora": "15:00",
+            "confirmacion": "S",
+        }
+        d.update(kw)
+        return d
+
+    def test_CA1_reasignar_S(self):
+        r = self.client.post(reverse("citas:reasignar"), self._payload())
+        self.assertEqual(r.status_code, 302)
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.fecha, self.fn)
+        self.assertEqual(self.cita.hora, "15:00")
+
+    def test_CA2_reasignar_N(self):
+        self.client.post(reverse("citas:reasignar"), self._payload(confirmacion="N"))
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.fecha, self.fo)
+
+    def test_CA3_id_inexistente(self):
+        form = ReasignarCitaForm(self._payload(id_cita="CIT-20990101-999"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("No existe ninguna cita con el ID ingresado.", str(form.errors))
+
+    def test_CA4_fecha_formato(self):
+        form = ReasignarCitaForm(self._payload(nueva_fecha="2026/12/01"))
+        self.assertFalse(form.is_valid())
+
+    def test_CA5_nuevo_turno_ocupado(self):
+        Cita.objects.create(
+            id_cita=Cita.generar_id(self.fn), nombre_paciente="Bloq",
+            dni_paciente="00112233", telefono="987000111", fecha=self.fn,
+            hora="10:00", motivo="Limpieza", dentista=self.d1,
+        )
+        form = ReasignarCitaForm(self._payload(nueva_hora="10:00"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("El nuevo turno no esta disponible para ese dentista.", str(form.errors))
+
+    def test_CA6_cita_cancelada(self):
+        self.cita.estado = "Cancelada"
+        self.cita.save()
+        form = ReasignarCitaForm(self._payload())
+        self.assertFalse(form.is_valid())
+        self.assertIn("No se puede reasignar una cita cancelada.", str(form.errors))
+
+    def test_CA7_misma_fecha_hora(self):
+        form = ReasignarCitaForm(self._payload(nueva_fecha=self.fo.strftime("%d/%m/%Y"), nueva_hora="09:00"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("La nueva fecha y hora deben ser distintas a las actuales.", str(form.errors))
+
+    def test_CA8_turno_anterior_libre(self):
+        self.client.post(reverse("citas:reasignar"), self._payload())
+        d = datos_validos(self.d1, fecha=self.fo.strftime("%d/%m/%Y"), hora="09:00", dni_paciente="77665544")
+        self.assertTrue(RegistrarCitaForm(d).is_valid())
+
+    def test_nueva_fecha_pasada(self):
+        ayer = (date.today() - timedelta(days=2)).strftime("%d/%m/%Y")
+        form = ReasignarCitaForm(self._payload(nueva_fecha=ayer))
+        self.assertFalse(form.is_valid())
+
+    def test_nueva_fecha_domingo(self):
+        dom = proximo_domingo().strftime("%d/%m/%Y")
+        form = ReasignarCitaForm(self._payload(nueva_fecha=dom))
+        self.assertFalse(form.is_valid())
+
