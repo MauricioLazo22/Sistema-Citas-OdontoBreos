@@ -452,3 +452,70 @@ class RF05TestCase(BaseCT):
         })
         self.assertContains(r, "Total de citas mostradas: 2")
 
+
+# Validators directos ---------------------------------------------------
+
+class ValidatorsTestCase(TestCase):
+    """Tests directos sobre los validadores."""
+
+    def test_dni_valido(self):
+        self.assertEqual(validar_dni("12345678"), "12345678")
+
+    def test_dni_con_espacios(self):
+        self.assertEqual(validar_dni("  12345678  "), "12345678")
+
+    def test_telefono_invalido(self):
+        with self.assertRaises(ValidationError):
+            validar_telefono("12345")
+
+    def test_nombre_letras(self):
+        self.assertEqual(validar_nombre("Juan Perez"), "Juan Perez")
+
+    def test_nombre_con_numeros(self):
+        with self.assertRaises(ValidationError):
+            validar_nombre("Juan 123")
+
+    def test_hora_valida(self):
+        self.assertEqual(validar_hora("09:00"), "09:00")
+
+    def test_hora_invalida(self):
+        with self.assertRaises(ValidationError):
+            validar_hora("13:00")
+
+    def test_motivo(self):
+        self.assertEqual(validar_motivo("Limpieza"), "Limpieza")
+
+    def test_id_normalizacion(self):
+        self.assertEqual(validar_id_cita("cit-20260615-001"), "CIT-20260615-001")
+
+
+# Datos masivos con Faker ----------------------------------------------
+
+class DatosAleatoriosTestCase(BaseCT):
+    """Genera N citas con Faker y valida unicidad de IDs."""
+
+    def test_10_citas_aleatorias(self):
+        creadas = 0
+        intentos = 0
+        while creadas < 10 and intentos < 100:
+            intentos += 1
+            f = fecha_futura(7 + intentos)
+            hora = fake.random_element(HORAS)
+            dent = fake.random_element([self.d1, self.d2, self.d3])
+            d = datos_validos(dent,
+                              fecha=f.strftime("%d/%m/%Y"),
+                              hora=hora,
+                              dni_paciente=fake.numerify("########"))
+            form = RegistrarCitaForm(d)
+            if form.is_valid():
+                Cita.objects.create(
+                    id_cita=Cita.generar_id(f),
+                    nombre_paciente=d["nombre_paciente"],
+                    dni_paciente=d["dni_paciente"],
+                    telefono=d["telefono"],
+                    fecha=f, hora=hora, motivo=d["motivo"], dentista=dent,
+                )
+                creadas += 1
+        self.assertEqual(creadas, 10)
+        ids = list(Cita.objects.values_list("id_cita", flat=True))
+        self.assertEqual(len(ids), len(set(ids)), "Hay IDs duplicados")
