@@ -78,3 +78,15 @@ def datos_validos(dentista, **overrides):
     base.update(overrides)
     return base
 
+
+# Base TestCase ---------------------------------------------------------
+
+class BaseCT(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.d1 = Dentista.objects.create(nombre="Dr. Juan Perez", activo=True)
+        cls.d2 = Dentista.objects.create(nombre="Dra. Maria Gomez", activo=True)
+        cls.d3 = Dentista.objects.create(nombre="Dr. Carlos Ramirez", activo=True)
+
+    def setUp(self):
+        self.client = Client()
