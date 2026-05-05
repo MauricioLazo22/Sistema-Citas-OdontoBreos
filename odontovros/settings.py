@@ -54,7 +54,6 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = "odontovros.wsgi.application"
 
 # Base de datos: SQLite, archivo .db dentro del proyecto
