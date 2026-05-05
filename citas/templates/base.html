@@ -3,173 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sistema de Citas Odontológicas{% endblock %}</title>
+    <title>{% block title %}Sistema de Citas{% endblock %}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f3f6fb;
-            color: #1f2937;
-            min-height: 100vh;
+            font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #1a1a1a;
+            background: #ffffff;
         }
-        .navbar {
-            background: linear-gradient(90deg, #0e7490, #155e75);
-            color: white;
-            padding: 16px 32px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        a { color: #1a4d80; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header.top {
+            border-bottom: 1px solid #d4d4d4;
+            padding: 14px 28px;
+            background: #fafafa;
+        }
+        header.top .wrap {
+            max-width: 960px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: baseline;
         }
-        .navbar h1 { font-size: 20px; font-weight: 600; }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            opacity: 0.9;
+        header.top h1 {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            color: #1a1a1a;
         }
-        .navbar a:hover { opacity: 1; }
-        .container {
-            max-width: 880px;
-            margin: 32px auto;
-            padding: 0 16px;
+        header.top .meta {
+            font-size: 12px;
+            color: #666;
         }
-                .card {
-            background: white;
-            border-radius: 12px;
-            padding: 28px 32px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-            margin-bottom: 16px;
+        header.top nav a {
+            font-size: 13px;
+            color: #1a4d80;
+            margin-left: 14px;
         }
-        h2 { color: #0e7490; margin-bottom: 8px; font-size: 22px; }
-        h3 { color: #334155; margin: 16px 0 8px; font-size: 16px; }
-        .subtitle { color: #64748b; font-size: 14px; margin-bottom: 24px; }
 
-        .messages { margin-bottom: 16px; }
+        main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 28px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #1a1a1a;
+            border-bottom: 1px solid #d4d4d4;
+            padding-bottom: 6px;
+        }
+        h2 .rf {
+            color: #888;
+            font-weight: 400;
+            font-size: 13px;
+            margin-right: 6px;
+        }
+        h3 { font-size: 14px; margin: 18px 0 8px; color: #333; }
+        p.subtitle { color: #555; font-size: 13px; margin: 8px 0 18px; }
+        p.small { font-size: 12px; color: #666; }
+
+        section { margin-bottom: 28px; }
+
+        /* mensajes (alerts) */
+        .messages { margin-bottom: 18px; }
         .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 14px;
+            padding: 8px 12px;
+            font-size: 13px;
+            margin-bottom: 6px;
+            border-left: 3px solid #888;
+            background: #f5f5f5;
         }
-        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
-        .alert-error   { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
-        .alert-info    { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
-        .alert-warning { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+        .alert-success { border-left-color: #2c7a3d; }
+        .alert-error   { border-left-color: #a02020; color: #6a1313; }
+        .alert-info    { border-left-color: #1a4d80; }
+        .alert-warning { border-left-color: #a06a00; }
 
-        form .field { margin-bottom: 14px; }
+        /* formularios */
+        form .field { margin-bottom: 12px; }
         form label {
             display: block;
-            font-size: 13px;
-            color: #475569;
-            margin-bottom: 4px;
+            font-size: 12px;
             font-weight: 500;
+            color: #333;
+            margin-bottom: 3px;
         }
-        form input[type="text"], form input[type="number"], form select, form textarea {
+        form input[type="text"],
+        form input[type="number"],
+        form select,
+        form textarea {
             width: 100%;
-            padding: 9px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 6px 8px;
+            border: 1px solid #b8b8b8;
+            border-radius: 2px;
+            font-size: 13px;
             font-family: inherit;
-            transition: border-color 0.15s;
+            background: #fff;
+            color: #1a1a1a;
         }
         form input:focus, form select:focus {
             outline: none;
-            border-color: #0e7490;
-            box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+            border-color: #1a4d80;
         }
-        .errorlist {
+        form .errorlist {
             list-style: none;
-            color: #b91c1c;
+            color: #a02020;
             font-size: 12px;
-            margin-top: 4px;
+            margin-top: 3px;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .actions {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e5e5;
+            display: flex;
+            gap: 8px;
         }
 
+        /* botones */
         .btn {
             display: inline-block;
-            padding: 10px 22px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-family: inherit;
+            border: 1px solid #b8b8b8;
+            border-radius: 2px;
+            background: #f5f5f5;
+            color: #1a1a1a;
             cursor: pointer;
-            border: none;
             text-decoration: none;
-            transition: opacity 0.15s, transform 0.1s;
         }
-        .btn:hover { opacity: 0.9; }
-        .btn:active { transform: translateY(1px); }
-        .btn-primary { background: #0e7490; color: white; }
-        .btn-secondary { background: #e2e8f0; color: #334155; }
-        .btn-danger  { background: #dc2626; color: white; }
-        .btn-success { background: #16a34a; color: white; }
+        .btn:hover { background: #e8e8e8; text-decoration: none; }
+        .btn-primary { background: #1a4d80; color: #fff; border-color: #1a4d80; }
+        .btn-primary:hover { background: #143d66; }
+        .btn-danger  { background: #fff; color: #a02020; border-color: #a02020; }
+        .btn-danger:hover { background: #fbeaea; }
 
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 14px;
-            margin-top: 18px;
+        /* menu */
+        ol.menu {
+            list-style: none;
+            margin: 14px 0;
+            border-top: 1px solid #e5e5e5;
         }
-        .menu-item {
+        ol.menu li {
+            border-bottom: 1px solid #e5e5e5;
+            padding: 10px 4px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 22px 16px;
-            text-decoration: none;
-            color: #0f172a;
-            transition: all 0.15s;
+            align-items: baseline;
+            gap: 12px;
         }
-        .menu-item:hover {
-            background: #ecfeff;
-            border-color: #0e7490;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(14, 116, 144, 0.15);
+        ol.menu li .num {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            color: #888;
+            min-width: 22px;
         }
-        .menu-item .num {
-            display: inline-block;
-            width: 36px;
-            height: 36px;
-            line-height: 36px;
-            border-radius: 50%;
-            background: #0e7490;
-            color: white;
-            font-weight: 700;
-            margin-bottom: 8px;
+        ol.menu li a {
+            font-weight: 500;
+            font-size: 14px;
         }
-        .menu-item strong { display: block; margin-bottom: 4px; font-size: 15px; }
-        .menu-item span { color: #64748b; font-size: 12px; }
+        ol.menu li .desc { color: #666; font-size: 12px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+        /* tablas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 12.5px;
+            border: 1px solid #d4d4d4;
+        }
         th, td {
             text-align: left;
-            padding: 9px 10px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 6px 9px;
+            border-bottom: 1px solid #e5e5e5;
+            border-right: 1px solid #e5e5e5;
+            vertical-align: top;
         }
-        th { background: #f8fafc; color: #475569; font-weight: 600; }
-        tr:hover td { background: #f8fafc; }
-        .estado-activa     { color: #047857; font-weight: 600; }
-        .estado-cancelada  { color: #b91c1c; font-weight: 600; }
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        td:last-child, th:last-child { border-right: none; }
+        tr:last-child td { border-bottom: none; }
+        td code, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+        .estado-activa    { color: #2c7a3d; }
+        .estado-cancelada { color: #a02020; }
 
-        .row { display: flex; gap: 12px; }
-        .row > * { flex: 1; }
-        .actions { margin-top: 18px; display: flex; gap: 8px; }
-        .small { font-size: 12px; color: #64748b; }
-        dl.detalle { display: grid; grid-template-columns: 200px 1fr; gap: 8px 16px; margin: 12px 0; font-size: 14px; }
-        dl.detalle dt { color: #64748b; font-weight: 500; }
-        dl.detalle dd { color: #1f2937; }
+        /* detalle (definition list) */
+        dl.detalle {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 4px 16px;
+            margin: 12px 0;
+            font-size: 13px;
+            border: 1px solid #d4d4d4;
+            padding: 10px 14px;
+            background: #fafafa;
+        }
+        dl.detalle dt { color: #666; }
+        dl.detalle dd { color: #1a1a1a; }
+
+        footer.bottom {
+            border-top: 1px solid #d4d4d4;
+            margin-top: 40px;
+            padding: 14px 28px;
+            font-size: 11px;
+            color: #888;
+            text-align: center;
+            background: #fafafa;
+        }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>🦷 Sistema de Citas Odontológicas — Grupo D</h1>
-        <a href="{% url 'citas:menu' %}">Menú principal</a>
-    </div>
-    <div class="container">
+    <header class="top">
+        <div class="wrap">
+            <div>
+                <h1>Sistema de Citas Odontológicas</h1>
+                <div class="meta">Grupo D &middot; UCSM &middot; Testing, Implantación y Mantenimiento</div>
+            </div>
+            <nav>
+                <a href="{% url 'citas:menu' %}">Menú</a>
+                <a href="{% url 'citas:registrar' %}">Registrar</a>
+                <a href="{% url 'citas:consultar' %}">Consultar</a>
+                <a href="{% url 'citas:agenda' %}">Agenda</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
         {% if messages %}
             <div class="messages">
                 {% for m in messages %}
@@ -177,7 +251,12 @@
                 {% endfor %}
             </div>
         {% endif %}
+
         {% block content %}{% endblock %}
-    </div>
+    </main>
+
+    <footer class="bottom">
+        Lazo Franco, M. &middot; Lonasco Sanamarina, L. &middot; Reaño Soto, I.
+    </footer>
 </body>
 </html>
