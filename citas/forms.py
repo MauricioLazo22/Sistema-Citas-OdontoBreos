@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from . import validators
 from .models import Cita, Dentista, HORAS_DISPONIBLES, MOTIVOS
 
+
 class RegistrarCitaForm(forms.Form):
     """RF-01: Registrar Cita."""
 
@@ -128,6 +129,7 @@ class ConsultarCitaForm(forms.Form):
 
         return cleaned
 
+
 class CancelarCitaForm(forms.Form):
     """RF-03: Cancelar Cita."""
 
@@ -149,3 +151,75 @@ class CancelarCitaForm(forms.Form):
                 "Opcion invalida. Ingrese S para confirmar o N para cancelar."
             )
         return c
+
+
+class ReasignarCitaForm(forms.Form):
+    """RF-04: Reasignar Cita."""
+
+    id_cita = forms.CharField(label="ID de la cita", max_length=20)
+    nueva_fecha = forms.CharField(label="Nueva fecha (DD/MM/AAAA)")
+    nueva_hora = forms.ChoiceField(label="Nueva hora", choices=HORAS_DISPONIBLES)
+    confirmacion = forms.ChoiceField(
+        label="Confirmacion",
+        choices=[("S", "S - Si, reasignar"), ("N", "N - No, abortar")],
+    )
+
+    def clean_id_cita(self):
+        return validators.validar_id_cita(self.cleaned_data.get("id_cita"))
+
+    def clean_nueva_fecha(self):
+        f = validators.parsear_fecha_ddmmaaaa(self.cleaned_data.get("nueva_fecha"))
+        return validators.validar_fecha_cita(f)
+
+    def clean_nueva_hora(self):
+        return validators.validar_hora(self.cleaned_data.get("nueva_hora"))
+
+    def clean_confirmacion(self):
+        c = (self.cleaned_data.get("confirmacion") or "").strip().upper()
+        if c not in {"S", "N"}:
+            raise ValidationError(
+                "Opcion invalida. Ingrese S para confirmar o N para cancelar."
+            )
+        return c
+
+    def clean(self):
+        cleaned = super().clean()
+        id_cita = cleaned.get("id_cita")
+        nueva_fecha = cleaned.get("nueva_fecha")
+        nueva_hora = cleaned.get("nueva_hora")
+
+        if not id_cita:
+            return cleaned
+
+        try:
+            cita = Cita.objects.select_related("dentista").get(id_cita=id_cita)
+        except Cita.DoesNotExist:
+            raise ValidationError("No existe ninguna cita con el ID ingresado.")
+
+        if cita.estado == "Cancelada":
+            raise ValidationError("No se puede reasignar una cita cancelada.")
+
+        if nueva_fecha and nueva_hora:
+            if nueva_fecha == cita.fecha and nueva_hora == cita.hora:
+                raise ValidationError(
+                    "La nueva fecha y hora deben ser distintas a las actuales."
+                )
+
+            # turno ocupado por OTRA cita activa del mismo dentista
+            ocupado = (
+                Cita.objects.filter(
+                    fecha=nueva_fecha,
+                    hora=nueva_hora,
+                    dentista=cita.dentista,
+                    estado="Activa",
+                )
+                .exclude(pk=cita.pk)
+                .exists()
+            )
+            if ocupado:
+                raise ValidationError(
+                    "El nuevo turno no esta disponible para ese dentista."
+                )
+
+        cleaned["_cita"] = cita
+        return cleaned
