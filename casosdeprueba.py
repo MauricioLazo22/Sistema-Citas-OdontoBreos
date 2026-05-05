@@ -377,3 +377,78 @@ class RF04TestCase(BaseCT):
         form = ReasignarCitaForm(self._payload(nueva_fecha=dom))
         self.assertFalse(form.is_valid())
 
+
+# RF-05 -----------------------------------------------------------------
+
+class RF05TestCase(BaseCT):
+    """Listar Agenda."""
+
+    def setUp(self):
+        super().setUp()
+        self.f1 = fecha_futura(7)
+        self.f2 = fecha_futura(14)
+        self.f3 = fecha_futura(21)
+        self.c1 = Cita.objects.create(
+            id_cita=Cita.generar_id(self.f1), nombre_paciente="Activa Uno",
+            dni_paciente="11111111", telefono="987111111", fecha=self.f1,
+            hora="09:00", motivo="Limpieza", dentista=self.d1,
+        )
+        self.c2 = Cita.objects.create(
+            id_cita=Cita.generar_id(self.f2), nombre_paciente="Activa Dos",
+            dni_paciente="22222222", telefono="987222222", fecha=self.f2,
+            hora="10:00", motivo="Endodoncia", dentista=self.d2,
+        )
+        self.c3 = Cita.objects.create(
+            id_cita=Cita.generar_id(self.f3), nombre_paciente="Cancelada Tres",
+            dni_paciente="33333333", telefono="987333333", fecha=self.f3,
+            hora="11:00", motivo="Limpieza", dentista=self.d1, estado="Cancelada",
+        )
+
+    def test_CA1_modo_hoy(self):
+        r = self.client.get(reverse("citas:agenda"), {"modo": "1"})
+        self.assertEqual(r.status_code, 200)
+
+    def test_CA2_rango_valido(self):
+        r = self.client.get(reverse("citas:agenda"), {
+            "modo": "2",
+            "fecha_inicio": self.f1.strftime("%d/%m/%Y"),
+            "fecha_fin": self.f3.strftime("%d/%m/%Y"),
+        })
+        self.assertContains(r, self.c1.id_cita)
+        self.assertContains(r, self.c2.id_cita)
+        self.assertNotContains(r, self.c3.id_cita)
+
+    def test_CA3_rango_invertido(self):
+        r = self.client.get(reverse("citas:agenda"), {
+            "modo": "2",
+            "fecha_inicio": self.f3.strftime("%d/%m/%Y"),
+            "fecha_fin": self.f1.strftime("%d/%m/%Y"),
+        })
+        self.assertContains(r, "La fecha de inicio no puede ser posterior")
+
+    def test_CA4_filtro_dentista(self):
+        r = self.client.get(reverse("citas:agenda"), {
+            "modo": "2",
+            "fecha_inicio": self.f1.strftime("%d/%m/%Y"),
+            "fecha_fin": self.f3.strftime("%d/%m/%Y"),
+            "dentista": self.d1.pk,
+        })
+        self.assertContains(r, self.c1.id_cita)
+        self.assertNotContains(r, self.c2.id_cita)
+
+    def test_CA5_periodo_sin_citas(self):
+        r = self.client.get(reverse("citas:agenda"), {
+            "modo": "2",
+            "fecha_inicio": fecha_futura(180).strftime("%d/%m/%Y"),
+            "fecha_fin": fecha_futura(190).strftime("%d/%m/%Y"),
+        })
+        self.assertContains(r, "No hay citas registradas")
+
+    def test_CA7_conteo(self):
+        r = self.client.get(reverse("citas:agenda"), {
+            "modo": "2",
+            "fecha_inicio": self.f1.strftime("%d/%m/%Y"),
+            "fecha_fin": self.f3.strftime("%d/%m/%Y"),
+        })
+        self.assertContains(r, "Total de citas mostradas: 2")
+
