@@ -223,3 +223,49 @@ class ReasignarCitaForm(forms.Form):
 
         cleaned["_cita"] = cita
         return cleaned
+
+class ListarAgendaForm(forms.Form):
+    """RF-05: Listar Agenda del Dia o Rango de Fechas."""
+
+    MODOS = [("1", "Agenda del dia"), ("2", "Rango de fechas")]
+
+    modo = forms.ChoiceField(label="Modo", choices=MODOS)
+    fecha_inicio = forms.CharField(label="Fecha inicio (DD/MM/AAAA)", required=False)
+    fecha_fin = forms.CharField(label="Fecha fin (DD/MM/AAAA)", required=False)
+    dentista = forms.ModelChoiceField(
+        label="Dentista (opcional)",
+        queryset=Dentista.objects.filter(activo=True).order_by("nombre"),
+        required=False,
+        empty_label="Todos los dentistas",
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        modo = cleaned.get("modo")
+
+        if modo not in {"1", "2"}:
+            raise ValidationError(
+                "Opcion invalida. Seleccione 1 (Hoy) o 2 (Rango de fechas)."
+            )
+
+        if modo == "1":
+            from datetime import date as _d
+            cleaned["fecha_inicio"] = _d.today()
+            cleaned["fecha_fin"] = _d.today()
+        else:
+            fi = cleaned.get("fecha_inicio")
+            ff = cleaned.get("fecha_fin")
+            if not fi or not ff:
+                raise ValidationError(
+                    "Debe ingresar fecha de inicio y fecha de fin."
+                )
+            fi = validators.parsear_fecha_ddmmaaaa(fi)
+            ff = validators.parsear_fecha_ddmmaaaa(ff)
+            if fi > ff:
+                raise ValidationError(
+                    "La fecha de inicio no puede ser posterior a la fecha de fin."
+                )
+            cleaned["fecha_inicio"] = fi
+            cleaned["fecha_fin"] = ff
+
+        return cleaned
