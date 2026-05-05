@@ -242,3 +242,52 @@ class RF02TestCase(BaseCT):
         c = r.content.decode()
         self.assertTrue(0 < c.find(self.cA.id_cita) < c.find(self.cB.id_cita))
 
+
+# RF-03 -----------------------------------------------------------------
+
+class RF03TestCase(BaseCT):
+    """Cancelar Cita."""
+
+    def setUp(self):
+        super().setUp()
+        self.f = fecha_futura(10)
+        self.cita = Cita.objects.create(
+            id_cita=Cita.generar_id(self.f), nombre_paciente="Test Cancelar",
+            dni_paciente="44556677", telefono="987444555", fecha=self.f,
+            hora="11:00", motivo="Revision general", dentista=self.d1,
+        )
+
+    def test_CA1_confirmacion_S(self):
+        r = self.client.post(reverse("citas:cancelar"), {"id_cita": self.cita.id_cita, "confirmacion": "S"})
+        self.assertEqual(r.status_code, 302)
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.estado, "Cancelada")
+
+    def test_CA2_confirmacion_N(self):
+        self.client.post(reverse("citas:cancelar"), {"id_cita": self.cita.id_cita, "confirmacion": "N"})
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.estado, "Activa")
+
+    def test_CA3_id_formato_invalido(self):
+        r = self.client.get(reverse("citas:cancelar"), {"id_cita": "ABC-XXX"})
+        self.assertContains(r, "Formato de ID invalido. Use CIT-YYYYMMDD-NNN.")
+
+    def test_CA4_id_no_existe(self):
+        r = self.client.get(reverse("citas:cancelar"), {"id_cita": "CIT-20990101-999"})
+        self.assertContains(r, "No existe ninguna cita con el ID ingresado.")
+
+    def test_CA5_doble_cancelacion(self):
+        self.cita.estado = "Cancelada"
+        self.cita.save()
+        r = self.client.get(reverse("citas:cancelar"), {"id_cita": self.cita.id_cita})
+        self.assertContains(r, "La cita ya fue cancelada previamente.")
+
+    def test_CA6_fecha_pasada(self):
+        Cita.objects.filter(pk=self.cita.pk).update(fecha=date.today() - timedelta(days=2))
+        r = self.client.get(reverse("citas:cancelar"), {"id_cita": self.cita.id_cita})
+        self.assertContains(r, "No se pueden cancelar citas de fechas pasadas.")
+
+    def test_CA7_turno_libre_tras_cancelar(self):
+        self.client.post(reverse("citas:cancelar"), {"id_cita": self.cita.id_cita, "confirmacion": "S"})
+        d = datos_validos(self.d1, fecha=self.f.strftime("%d/%m/%Y"), hora=self.cita.hora, dni_paciente="99887766")
+        self.assertTrue(RegistrarCitaForm(d).is_valid())
