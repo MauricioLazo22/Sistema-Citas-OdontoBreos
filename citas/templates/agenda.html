@@ -1,0 +1,97 @@
+{% extends "citas/base.html" %}
+
+{% block title %}Listar Agenda{% endblock %}
+
+{% block content %}
+<section>
+    <h2><span class="rf">RF-05</span>Listar Agenda</h2>
+    <p class="subtitle">Ver agenda del día actual o por rango de fechas. Solo se muestran citas en estado Activa.</p>
+
+    <form method="get" novalidate>
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {% for err in form.non_field_errors %}{{ err }}<br>{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="field">
+                <label for="{{ form.modo.id_for_label }}">Modo</label>
+                {{ form.modo }}
+                {{ form.modo.errors }}
+            </div>
+            <div class="field">
+                <label for="{{ form.dentista.id_for_label }}">Dentista</label>
+                {{ form.dentista }}
+                {{ form.dentista.errors }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label for="{{ form.fecha_inicio.id_for_label }}">Fecha inicio (solo modo 2)</label>
+                {{ form.fecha_inicio }}
+                {{ form.fecha_inicio.errors }}
+            </div>
+            <div class="field">
+                <label for="{{ form.fecha_fin.id_for_label }}">Fecha fin (solo modo 2)</label>
+                {{ form.fecha_fin }}
+                {{ form.fecha_fin.errors }}
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">Listar</button>
+            <a href="{% url 'citas:menu' %}" class="btn">Volver</a>
+        </div>
+    </form>
+</section>
+
+{% if realizada %}
+<section>
+    <h3>
+        Agenda
+        {% if fecha_inicio == fecha_fin %}
+            del {{ fecha_inicio|date:"d/m/Y" }}
+        {% else %}
+            del {{ fecha_inicio|date:"d/m/Y" }} al {{ fecha_fin|date:"d/m/Y" }}
+        {% endif %}
+        {% if dentista_seleccionado %}
+            &middot; Dentista: {{ dentista_seleccionado.nombre }}
+        {% endif %}
+    </h3>
+
+    {% if resultados %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Paciente</th>
+                    <th>DNI</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Motivo</th>
+                    <th>Dentista</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in resultados %}
+                <tr>
+                    <td><span class="mono">{{ c.id_cita }}</span></td>
+                    <td>{{ c.nombre_paciente }}</td>
+                    <td class="mono">{{ c.dni_paciente }}</td>
+                    <td>{{ c.fecha|date:"d/m/Y" }}</td>
+                    <td class="mono">{{ c.hora }}</td>
+                    <td>{{ c.motivo }}</td>
+                    <td>{{ c.dentista.nombre }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="small" style="margin-top: 8px;">Total de citas mostradas: {{ total }}</p>
+    {% else %}
+        <p class="small">No hay citas registradas para el período seleccionado.</p>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}
