@@ -90,3 +90,103 @@ class BaseCT(TestCase):
 
     def setUp(self):
         self.client = Client()
+
+
+# RF-01 -----------------------------------------------------------------
+
+class RF01TestCase(BaseCT):
+    """Registrar Cita."""
+
+    def test_CA1_registro_valido(self):
+        form = RegistrarCitaForm(datos_validos(self.d1))
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_CA1_HTTP_redirect(self):
+        resp = self.client.post(reverse("citas:registrar"), datos_validos(self.d1))
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(Cita.objects.count(), 1)
+
+    def test_CA1_id_formato(self):
+        self.client.post(reverse("citas:registrar"), datos_validos(self.d1))
+        cita = Cita.objects.first()
+        self.assertRegex(cita.id_cita, r"^CIT-\d{8}-\d{3}$")
+        self.assertEqual(cita.estado, "Activa")
+
+    def test_CA2_nombre_vacio(self):
+        form = RegistrarCitaForm(datos_validos(self.d1, nombre_paciente=""))
+        self.assertFalse(form.is_valid())
+
+    def test_CA2_dni_vacio(self):
+        form = RegistrarCitaForm(datos_validos(self.d1, dni_paciente=""))
+        self.assertFalse(form.is_valid())
+
+    def test_CA2_telefono_vacio(self):
+        form = RegistrarCitaForm(datos_validos(self.d1, telefono=""))
+        self.assertFalse(form.is_valid())
+
+    def test_CA3_dni_7_digitos(self):
+        form = RegistrarCitaForm(datos_validos(self.d1, dni_paciente="1234567"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("DNI invalido. Ingrese exactamente 8 digitos.", str(form.errors))
+
+    def test_CA3_dni_con_letras(self):
+        form = RegistrarCitaForm(datos_validos(self.d1, dni_paciente="1234ABCD"))
+        self.assertFalse(form.is_valid())
+
+    def test_CA3_telefono_8_digitos(self):
+        form = RegistrarCitaForm(datos_validos(self.d1, telefono="98765432"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("Telefono invalido. Ingrese exactamente 9 digitos.", str(form.errors))
+
+    def test_CA4_fecha_pasada(self):
+        ayer = (date.today() - timedelta(days=1)).strftime("%d/%m/%Y")
+        form = RegistrarCitaForm(datos_validos(self.d1, fecha=ayer))
+        self.assertFalse(form.is_valid())
+        self.assertIn("No se pueden registrar citas en fechas pasadas.", str(form.errors))
+
+    def test_fecha_domingo(self):
+        dom = proximo_domingo().strftime("%d/%m/%Y")
+        form = RegistrarCitaForm(datos_validos(self.d1, fecha=dom))
+        self.assertFalse(form.is_valid())
+        self.assertIn("No se atiende los domingos.", str(form.errors))
+
+    def test_fecha_formato_malo(self):
+        form = RegistrarCitaForm(datos_validos(self.d1, fecha="2026-06-15"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("Formato de fecha invalido. Use DD/MM/AAAA.", str(form.errors))
+
+    def test_CA5_turno_ocupado(self):
+        d = datos_validos(self.d1, hora="10:00")
+        f = parsear_fecha_ddmmaaaa(d["fecha"])
+        Cita.objects.create(
+            id_cita=Cita.generar_id(f), nombre_paciente=d["nombre_paciente"],
+            dni_paciente=d["dni_paciente"], telefono=d["telefono"], fecha=f,
+            hora=d["hora"], motivo=d["motivo"], dentista=self.d1,
+        )
+        d2 = datos_validos(self.d1, fecha=d["fecha"], hora=d["hora"], dni_paciente="99999999")
+        form = RegistrarCitaForm(d2)
+        self.assertFalse(form.is_valid())
+        self.assertIn("El turno seleccionado no esta disponible para ese dentista.", str(form.errors))
+
+    def test_turno_libre_otro_dentista(self):
+        f = fecha_futura()
+        Cita.objects.create(
+            id_cita=Cita.generar_id(f), nombre_paciente="Uno",
+            dni_paciente="11111111", telefono="987111222", fecha=f, hora="09:00",
+            motivo="Limpieza", dentista=self.d1,
+        )
+        d = datos_validos(self.d2, fecha=f.strftime("%d/%m/%Y"), hora="09:00", dni_paciente="22222222")
+        self.assertTrue(RegistrarCitaForm(d).is_valid())
+
+    def test_CA6_mismo_dni_misma_fecha(self):
+        f = fecha_futura()
+        Cita.objects.create(
+            id_cita=Cita.generar_id(f), nombre_paciente="Original",
+            dni_paciente="55555555", telefono="987000000", fecha=f, hora="09:00",
+            motivo="Limpieza", dentista=self.d1,
+        )
+        d = datos_validos(self.d2, fecha=f.strftime("%d/%m/%Y"), hora="14:00", dni_paciente="55555555")
+        form = RegistrarCitaForm(d)
+        self.assertFalse(form.is_valid())
+        self.assertIn("El paciente ya tiene una cita registrada para esa fecha.", str(form.errors))
+
