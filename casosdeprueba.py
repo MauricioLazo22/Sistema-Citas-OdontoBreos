@@ -190,3 +190,55 @@ class RF01TestCase(BaseCT):
         self.assertFalse(form.is_valid())
         self.assertIn("El paciente ya tiene una cita registrada para esa fecha.", str(form.errors))
 
+
+# RF-02 -----------------------------------------------------------------
+
+class RF02TestCase(BaseCT):
+    """Consultar Cita."""
+
+    def setUp(self):
+        super().setUp()
+        self.f1 = fecha_futura(7)
+        self.f2 = fecha_futura(14)
+        self.cA = Cita.objects.create(
+            id_cita=Cita.generar_id(self.f1), nombre_paciente="Ana Lopez",
+            dni_paciente="11223344", telefono="987111222", fecha=self.f1,
+            hora="09:00", motivo="Limpieza", dentista=self.d1,
+        )
+        self.cB = Cita.objects.create(
+            id_cita=Cita.generar_id(self.f2), nombre_paciente="Bruno Diaz",
+            dni_paciente="11223344", telefono="987111222", fecha=self.f2,
+            hora="10:00", motivo="Endodoncia", dentista=self.d2,
+        )
+
+    def test_CA1_buscar_por_dni(self):
+        r = self.client.get(reverse("citas:consultar"), {"criterio": "1", "dni": "11223344"})
+        self.assertContains(r, self.cA.id_cita)
+        self.assertContains(r, self.cB.id_cita)
+
+    def test_CA2_buscar_por_fecha(self):
+        r = self.client.get(reverse("citas:consultar"), {"criterio": "2", "fecha": self.f1.strftime("%d/%m/%Y")})
+        self.assertContains(r, self.cA.id_cita)
+        self.assertNotContains(r, self.cB.id_cita)
+
+    def test_CA3_dni_sin_citas(self):
+        r = self.client.get(reverse("citas:consultar"), {"criterio": "1", "dni": "00000000"})
+        self.assertContains(r, "No se encontraron citas")
+
+    def test_CA4_fecha_sin_citas(self):
+        r = self.client.get(reverse("citas:consultar"), {"criterio": "2", "fecha": fecha_futura(60).strftime("%d/%m/%Y")})
+        self.assertContains(r, "No se encontraron citas")
+
+    def test_CA5_dni_letras(self):
+        r = self.client.get(reverse("citas:consultar"), {"criterio": "1", "dni": "ABCD1234"})
+        self.assertContains(r, "DNI invalido. Ingrese exactamente 8 digitos.")
+
+    def test_CA6_fecha_formato(self):
+        r = self.client.get(reverse("citas:consultar"), {"criterio": "2", "fecha": "30-12-2026"})
+        self.assertContains(r, "Formato de fecha invalido")
+
+    def test_orden_cronologico(self):
+        r = self.client.get(reverse("citas:consultar"), {"criterio": "1", "dni": "11223344"})
+        c = r.content.decode()
+        self.assertTrue(0 < c.find(self.cA.id_cita) < c.find(self.cB.id_cita))
+
