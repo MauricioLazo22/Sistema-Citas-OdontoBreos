@@ -334,3 +334,42 @@ def reasignar(request):
         "citas/reasignar.html",
         {"form": None, "cita": None, "modo": "buscar"},
     )
+
+
+def agenda(request):
+    """RF-05: Listar Agenda del Dia o Rango de Fechas."""
+    resultados = None
+    realizada = False
+    fi = ff = None
+    dent = None
+
+    form = ListarAgendaForm(request.GET or None)
+
+    if request.GET and form.is_valid():
+        realizada = True
+        fi = form.cleaned_data["fecha_inicio"]
+        ff = form.cleaned_data["fecha_fin"]
+        dent = form.cleaned_data.get("dentista")
+
+        qs = Cita.objects.select_related("dentista").filter(
+            estado="Activa",
+            fecha__gte=fi,
+            fecha__lte=ff,
+        )
+        if dent:
+            qs = qs.filter(dentista=dent)
+        resultados = qs.order_by("fecha", "hora")
+
+    return render(
+        request,
+        "citas/agenda.html",
+        {
+            "form": form,
+            "resultados": resultados,
+            "realizada": realizada,
+            "fecha_inicio": fi,
+            "fecha_fin": ff,
+            "dentista_seleccionado": dent,
+            "total": len(resultados) if resultados is not None else 0,
+        },
+    )
