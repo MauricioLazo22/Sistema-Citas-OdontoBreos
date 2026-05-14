@@ -75,6 +75,13 @@ class Cita(models.Model):
         verbose_name = "Cita"
         verbose_name_plural = "Citas"
         ordering = ["fecha", "hora"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["fecha", "hora", "dentista"],
+                condition=Q(estado="Activa"),        # ← solo aplica a citas Activas
+                name="unique_turno_activo_por_dentista",
+            )
+        ]
 
     def __str__(self):
         return f"{self.id_cita} - {self.nombre_paciente} ({self.fecha} {self.hora})"
