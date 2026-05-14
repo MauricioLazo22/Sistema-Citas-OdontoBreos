@@ -180,18 +180,13 @@ def cancelar(request):
                 {"form": None, "cita": None, "modo": "buscar"},
             )
 
-        if cita.estado == "Cancelada":
-            messages.error(request, "La cita ya fue cancelada previamente.")
-            return render(
-                request,
-                "citas/cancelar.html",
-                {"form": None, "cita": cita, "modo": "buscar"},
-            )
-
-        if cita.fecha < date.today():
-            messages.error(
-                request, "No se pueden cancelar citas de fechas pasadas."
-            )
+        if not cita.es_cancelable:
+            if cita.estado == "Cancelada":
+                messages.error(request, "La cita ya fue cancelada previamente.")
+            else:
+                messages.error(
+                    request, "No se pueden cancelar citas de fechas pasadas."
+                )
             return render(
                 request,
                 "citas/cancelar.html",
@@ -369,6 +364,6 @@ def agenda(request):
             "fecha_inicio": fi,
             "fecha_fin": ff,
             "dentista_seleccionado": dent,
-            "total": len(resultados) if resultados is not None else 0,
+            "total": resultados.count() if resultados is not None else 0,
         },
     )
