@@ -1,0 +1,52 @@
+{% extends "citas/base.html" %}
+
+{% block title %}Menú principal{% endblock %}
+
+{% block content %}
+<section>
+    <h2>Menú principal</h2>
+    <p class="subtitle">Seleccione una opción para continuar.</p>
+
+    <ol class="menu">
+        <li>
+            <span class="num">1.</span>
+            <div>
+                <a href="{% url 'citas:registrar' %}">Registrar Cita</a>
+                <div class="desc">RF-01 — Agendar una nueva cita para un paciente.</div>
+            </div>
+        </li>
+        <li>
+            <span class="num">2.</span>
+            <div>
+                <a href="{% url 'citas:consultar' %}">Consultar Cita</a>
+                <div class="desc">RF-02 — Buscar citas por DNI o por fecha.</div>
+            </div>
+        </li>
+        <li>
+            <span class="num">3.</span>
+            <div>
+                <a href="{% url 'citas:cancelar' %}">Cancelar Cita</a>
+                <div class="desc">RF-03 — Cancelar una cita activa por su ID.</div>
+            </div>
+        </li>
+        <li>
+            <span class="num">4.</span>
+            <div>
+                <a href="{% url 'citas:reasignar' %}">Reasignar Cita</a>
+                <div class="desc">RF-04 — Cambiar fecha y hora de una cita activa.</div>
+            </div>
+        </li>
+        <li>
+            <span class="num">5.</span>
+            <div>
+                <a href="{% url 'citas:agenda' %}">Listar Agenda</a>
+                <div class="desc">RF-05 — Agenda del día o por rango de fechas.</div>
+            </div>
+        </li>
+    </ol>
+
+    <p class="small">
+        Letra del grupo: D &middot; Lenguaje: Python (Django) &middot; Base de datos: SQLite (citas.db)
+    </p>
+</section>
+{% endblock %}
