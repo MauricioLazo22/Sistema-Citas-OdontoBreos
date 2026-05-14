@@ -3,6 +3,7 @@ Vistas para el modulo de Citas Odontologicas - Grupo D.
 RF-01 Registrar, RF-02 Consultar, RF-03 Cancelar.
 """
 from datetime import date
+from urllib import request
 
 from django.contrib import messages
 from django.db import transaction
@@ -123,14 +124,12 @@ def cancelar(request):
                 )
                 return redirect("citas:cancelar")
 
-            if cita.estado == "Cancelada":
-                messages.error(request, "La cita ya fue cancelada previamente.")
-                return redirect("citas:cancelar")
-
-            if cita.fecha < date.today():
-                messages.error(
-                    request, "No se pueden cancelar citas de fechas pasadas."
-                )
+            # En cancelar() — POST
+            if not cita.es_cancelable:             
+                if cita.estado == "Cancelada":
+                    messages.error(request, "La cita ya fue cancelada previamente.")
+                else:
+                    messages.error(request, "No se pueden cancelar citas de fechas pasadas.")
                 return redirect("citas:cancelar")
 
             if confirmacion == "N":

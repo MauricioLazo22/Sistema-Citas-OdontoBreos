@@ -86,6 +86,8 @@ class Cita(models.Model):
     def __str__(self):
         return f"{self.id_cita} - {self.nombre_paciente} ({self.fecha} {self.hora})"
 
+    
+
     @staticmethod
     def generar_id(fecha_cita):
         """
@@ -108,6 +110,29 @@ class Cita(models.Model):
             ultimo_num = 0
         nuevo = ultimo_num + 1
         return f"{prefijo}{nuevo:03d}"
+    
+    def clean(self):
+            """
+            Validaciones a nivel de modelo — se ejecutan siempre,
+            incluso si se usa el ORM directamente sin pasar por los formularios.
+            """
+            from django.core.exceptions import ValidationError as DjangoValidationError
+            from .validators import validar_fecha_cita
+            if self.fecha:
+                try:
+                    validar_fecha_cita(self.fecha)
+                except DjangoValidationError:
+                    raise DjangoValidationError(
+                        {"fecha": "No se pueden registrar citas en fechas pasadas."}
+                    )
+
+    def save(self, *args, **kwargs):
+            """Llama a full_clean() antes de guardar para aplicar validaciones del modelo."""
+            if not kwargs.get("update_fields"):
+                self.full_clean()
+            super().save(*args, **kwargs)
+    
+    
 
     @property
     def es_cancelable(self):
