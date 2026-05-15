@@ -2,17 +2,25 @@
 Configuracion del proyecto Django para Sistema de Citas Odontologicas (Grupo D).
 """
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-cambiar-en-produccion-grupo-d-odontovros-2026"
+# En produccion definir la variable de entorno DJANGO_SECRET_KEY con un valor seguro.
+# En desarrollo local se usa el valor de fallback unicamente.
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-dev-only-cambiar-en-produccion-grupo-d-2026",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# En produccion establecer: DJANGO_DEBUG=False
+DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ["*"]
+# En produccion establecer: DJANGO_ALLOWED_HOSTS=tudominio.com
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
 # Application definition
 
