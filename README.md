@@ -13,7 +13,7 @@ Módulo para la **Guerra de Testers** — TIyMS, Universidad Católica de Santa 
 | Código | Nombre |
 |---|---|
 | 2023223181 | Lazo Franco, Mauricio Paolo |
-| 2023223291 | Lonasco Sanamarina, Leonardo Olier |
+| 2023223291 | Lonasco Santamarina, Leonardo Oliver |
 | 2023224941 | Reaño Soto, Iván Edgardo |
 
 ## Funcionalidades implementadas
@@ -21,8 +21,8 @@ Módulo para la **Guerra de Testers** — TIyMS, Universidad Católica de Santa 
 - **RF-01 Registrar Cita** — con todas las validaciones del PDF (DNI 8 dígitos, teléfono 9 dígitos, no domingos, fechas no pasadas, turnos disponibles, motivos válidos, no duplicados por DNI/fecha, no doble booking de turno).
 - **RF-02 Consultar Cita** — búsqueda por DNI o por fecha, con resultados ordenados cronológicamente.
 - **RF-03 Cancelar Cita** — flujo de búsqueda por ID + confirmación S/N, no permite cancelar dos veces ni fechas pasadas.
-
-> Nota: **RF-04 (Reasignar)** y **RF-05 (Listar Agenda)** quedan pendientes para una segunda iteración.
+- **RF-04 Reasignar Cita** — permite cambiar fecha y hora de una cita activa, conservando dentista y paciente. Valida disponibilidad del nuevo turno y aplica todas las reglas de negocio.
+- **RF-05 Listar Agenda** — visualización de citas activas del día actual o por rango de fechas, con filtro opcional por dentista y conteo total.
 
 ## Cómo levantarlo
 
@@ -70,29 +70,45 @@ Abrir http://127.0.0.1:8000/ en el navegador.
 - Registrar Cita: `/registrar/`
 - Consultar Cita: `/consultar/`
 - Cancelar Cita: `/cancelar/`
+- Reasignar Cita: `/reasignar/`
+- Listar Agenda: `/agenda/`
 - Panel de Admin: `/admin/`
+
+### 5. Ejecutar los tests automatizados
+
+```bash
+python manage.py test casosdeprueba
+```
+
+Resultado esperado: `Ran 55 tests in X.XXXs — OK`
 
 ## Estructura del proyecto
 
 ```
-Sistema-Citas-OdontoVros/
+Sistema-Citas-OdontoBreos/
 ├── manage.py
-├── requirements.txt
+├── requirements.txt              ← Django>=5.2,<6.0 + Faker>=25.0
 ├── README.md
+├── casosdeprueba.py              ← 55 casos de prueba automatizados
 ├── citas.db                      ← se genera al correr migrate
 ├── odontovros/                   ← configuración del proyecto
+│   ├── __init__.py
 │   ├── settings.py
 │   ├── urls.py
 │   ├── wsgi.py
 │   └── asgi.py
 └── citas/                        ← app principal
+    ├── __init__.py
     ├── models.py                 ← Dentista, Cita
     ├── forms.py                  ← formularios con validaciones
     ├── validators.py             ← validaciones reutilizables
-    ├── views.py                  ← lógica RF-01, RF-02, RF-03
+    ├── views.py                  ← lógica RF-01 al RF-05
     ├── urls.py
     ├── admin.py
     ├── migrations/
+    │   ├── __init__.py
+    │   ├── 0001_initial.py
+    │   └── 0002_add_unique_turno_activo.py
     ├── fixtures/
     │   ├── dentistas_iniciales.json
     │   └── citas_demo.json
@@ -101,7 +117,9 @@ Sistema-Citas-OdontoVros/
         ├── menu.html
         ├── registrar.html
         ├── consultar.html
-        └── cancelar.html
+        ├── cancelar.html
+        ├── reasignar.html
+        └── agenda.html
 ```
 
 ## Datos de prueba
@@ -127,23 +145,9 @@ Sistema-Citas-OdontoVros/
 - ID inválido → "Formato de ID invalido. Use CIT-YYYYMMDD-NNN."
 - Cita ya cancelada → "La cita ya fue cancelada previamente."
 - Cancelar fecha pasada → "No se pueden cancelar citas de fechas pasadas."
+- Reasignar misma fecha y hora → "La nueva fecha y hora son iguales a las actuales."
+- Reasignar cita cancelada → "No se puede reasignar una cita cancelada."
 
 ## Notas de limpieza
 
 El repo contenía un scaffold inicial de Node/Express + Tailwind que fue reemplazado por este proyecto Python/Django. Si todavía ves los siguientes archivos/carpetas, puedes borrarlos manualmente — **no son usados por el sistema**:
-
-```
-node_modules/
-package.json
-package-lock.json
-postcss.config.js
-tailwind.config.js
-src/
-public/
-```
-
-## Pendientes para la siguiente entrega
-
-- [ ] Implementar **RF-04 Reasignar Cita** (penalización -5 pts si no se entrega)
-- [ ] Implementar **RF-05 Listar Agenda del Día / Rango de Fechas** (penalización -5 pts si no se entrega)
-- [ ] Documentar casos de prueba para la fase de Testing
