@@ -112,19 +112,26 @@ class Cita(models.Model):
         return f"{prefijo}{nuevo:03d}"
     
     def clean(self):
-            """
-            Validaciones a nivel de modelo — se ejecutan siempre,
-            incluso si se usa el ORM directamente sin pasar por los formularios.
-            """
-            from django.core.exceptions import ValidationError as DjangoValidationError
-            from .validators import validar_fecha_cita
-            if self.fecha:
-                try:
-                    validar_fecha_cita(self.fecha)
-                except DjangoValidationError:
-                    raise DjangoValidationError(
-                        {"fecha": "No se pueden registrar citas en fechas pasadas."}
-                    )
+        """
+        Validaciones a nivel de modelo — se ejecutan siempre,
+        incluso si se usa el ORM directamente sin pasar por los formularios.
+        """
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        from .validators import validar_fecha_cita, validar_hora
+        if self.fecha:
+            try:
+                validar_fecha_cita(self.fecha)
+            except DjangoValidationError:
+                raise DjangoValidationError(
+                    {"fecha": "No se pueden registrar citas en fechas pasadas."}
+                )
+        if self.hora:
+            try:
+                validar_hora(self.hora)
+            except DjangoValidationError:
+                raise DjangoValidationError(
+                    {"hora": "Hora invalida. Seleccione un turno valido."}
+                )
 
     def save(self, *args, **kwargs):
             """Llama a full_clean() antes de guardar para aplicar validaciones del modelo."""
